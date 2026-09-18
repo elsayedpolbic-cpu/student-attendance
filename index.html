@@ -3,230 +3,201 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0f766e">
-  <meta name="description" content="تطبيق تسجيل حضور الطلبة عبر QR وربطه بـ Google Sheets">
+  <meta name="theme-color" content="#0F766E">
+  <meta name="background-color" content="#F4F8F7">
+  <meta name="description" content="نظام حضور الطلبة عبر QR وربطه بـ Google Sheets">
   <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="الحضور">
 
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" href="./icons/icon-192.png">
   <link rel="apple-touch-icon" href="./icons/icon-192.png">
   <link rel="stylesheet" href="./style.css">
 
-  <title>حضور الطلبة</title>
-
+  <title>نظام الحضور</title>
   <script defer src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <script defer src="./app.js"></script>
 </head>
 
 <body>
+  <div id="offlineBanner" class="offline-banner hidden">
+    لا يوجد اتصال بالإنترنت — التسجيل يحتاج اتصالًا للوصول إلى Google Sheets
+  </div>
+
   <main id="app">
 
-    <section id="loginView" class="screen">
-      <div class="brand-card">
-        <div class="brand-mark">✓</div>
+    <section id="loginView" class="screen login-screen">
+      <div class="brand-card pro-brand">
+        <div class="brand-mark pro-logo">✓</div>
         <div>
+          <div class="eyebrow brand-eyebrow">نظام إدارة الحضور</div>
           <h1>حضور الطلبة</h1>
-          <p>تسجيل سريع بالـ QR وربط مباشر مع Google Sheets.</p>
+          <p>تسجيل سريع عبر QR مع متابعة لحظية للحضور والقطاعات.</p>
         </div>
       </div>
 
-      <div class="card login-card">
-        <h2>تسجيل الدخول</h2>
+      <div class="card login-card pro-card">
+        <div class="title-row">
+          <div>
+            <div class="eyebrow">الدخول للنظام</div>
+            <h2>ابدأ جلسة التسجيل</h2>
+          </div>
+          <span class="mini-badge">Google Sheets</span>
+        </div>
 
         <label class="field">
           <span>رابط Apps Script Web App</span>
-          <input
-            id="backendUrl"
-            type="url"
-            inputmode="url"
-            placeholder="https://script.google.com/macros/s/.../exec"
-            autocomplete="off">
+          <input id="backendUrl" type="url" inputmode="url"
+                 placeholder="https://script.google.com/macros/s/.../exec"
+                 autocomplete="off">
         </label>
 
         <label class="field">
           <span>رمز الدخول</span>
-          <input
-            id="pin"
-            type="password"
-            inputmode="numeric"
-            placeholder="••••••"
-            autocomplete="current-password">
+          <div class="password-row">
+            <input id="pin" type="password" inputmode="numeric"
+                   placeholder="••••••" autocomplete="current-password">
+            <button id="togglePinBtn" class="btn soft pin-btn" type="button">إظهار</button>
+          </div>
         </label>
 
-        <button id="loginBtn" class="btn primary wide" type="button">
-          دخول
-        </button>
+        <button id="loginBtn" class="btn primary wide login-main-btn" type="button">دخول للنظام</button>
 
-        <p class="hint">
-          يتم حفظ رابط الـ Web App على هذا الهاتف فقط. رمز الدخول لا يتم حفظه.
-        </p>
-
+        <p class="hint center-hint">يتم حفظ رابط الربط على هذا الهاتف فقط، ولا يتم حفظ رمز الدخول.</p>
         <div id="loginMessage" class="message hidden" aria-live="polite"></div>
       </div>
 
-      <button id="installBtnLogin" class="btn soft wide install hidden" type="button">
-        تثبيت التطبيق على الهاتف
-      </button>
+      <button id="installBtnLogin" class="btn soft wide install hidden" type="button">تثبيت التطبيق على الهاتف</button>
+      <div class="version-note">نسخة 2.0</div>
     </section>
 
 
     <section id="mainView" class="screen hidden">
-      <header class="app-header">
-        <div>
-          <div class="eyebrow">تسجيل الحضور</div>
-          <h1 id="sessionTitle">اللقاء الحالي</h1>
+      <header class="app-header pro-header">
+        <div class="header-brand-wrap">
+          <div class="header-logo">✓</div>
+          <div>
+            <div class="eyebrow header-eyebrow">نظام الحضور</div>
+            <h1 id="sessionTitle">اللقاء الحالي</h1>
+          </div>
         </div>
 
-        <button id="menuBtn" class="icon-btn" type="button" aria-label="الإعدادات">
-          ⋮
-        </button>
+        <div class="header-tools">
+          <span id="connectionBadge" class="connection-badge"><span class="dot"></span>متصل</span>
+          <button id="menuBtn" class="icon-btn" type="button" aria-label="الإعدادات">⋮</button>
+        </div>
       </header>
 
-      <section class="card session-card">
+      <section class="card session-card pro-card">
         <label class="field compact">
-          <span>اللقاء</span>
+          <span>اللقاء الحالي</span>
           <select id="sessionSelect"></select>
         </label>
-
         <div class="session-actions">
           <button id="refreshBtn" class="btn soft" type="button">تحديث</button>
-          <button id="newSessionBtn" class="btn soft" type="button">+ لقاء جديد</button>
+          <button id="newSessionBtn" class="btn outline-btn" type="button">+ لقاء جديد</button>
         </div>
       </section>
 
-      <section class="stats-grid" aria-label="ملخص الحضور">
-        <div class="stat-card">
-          <strong id="totalCount">0</strong>
-          <span>إجمالي الطلبة</span>
-        </div>
-        <div class="stat-card success">
-          <strong id="attendedCount">0</strong>
-          <span>حضر</span>
-        </div>
-        <div class="stat-card">
-          <strong id="pendingCount">0</strong>
-          <span>لم يسجل بعد</span>
-        </div>
-        <div class="stat-card accent">
-          <strong id="percentageCount">0%</strong>
-          <span>نسبة الحضور</span>
-        </div>
+      <section class="stats-grid pro-stats" aria-label="ملخص الحضور">
+        <div class="stat-card"><div class="stat-ico">👥</div><div><strong id="totalCount">0</strong><span>إجمالي الطلبة</span></div></div>
+        <div class="stat-card success"><div class="stat-ico">✓</div><div><strong id="attendedCount">0</strong><span>حضر</span></div></div>
+        <div class="stat-card"><div class="stat-ico">…</div><div><strong id="pendingCount">0</strong><span>لم يسجل بعد</span></div></div>
+        <div class="stat-card accent"><div class="stat-ico">%</div><div><strong id="percentageCount">0%</strong><span>نسبة الحضور</span></div></div>
       </section>
 
-      <section class="card scanner-card">
-        <button id="scanBtn" class="btn primary scan-btn" type="button">
-          <span class="scan-icon">▣</span>
-          فتح الكاميرا ومسح QR
+      <section class="card scanner-card pro-card">
+        <div class="title-row scanner-title-row">
+          <div>
+            <div class="eyebrow">تسجيل سريع</div>
+            <h2>مسح كود الطالب</h2>
+          </div>
+          <span class="ready-badge">جاهز للمسح</span>
+        </div>
+
+        <button id="scanBtn" class="btn primary scan-btn pro-scan-btn" type="button">
+          <span class="scan-icon-box">▣</span>
+          <span class="scan-copy"><strong>فتح الكاميرا</strong><small>وجّه الكاميرا إلى QR الطالب</small></span>
         </button>
 
         <div id="scannerArea" class="scanner-area hidden">
-          <div id="reader"></div>
-
+          <div class="scanner-shell">
+            <div class="scanner-label">ضع QR داخل الإطار</div>
+            <div id="reader"></div>
+          </div>
           <div class="scanner-actions">
             <button id="resumeBtn" class="btn soft" type="button">استكمال المسح</button>
             <button id="stopBtn" class="btn danger-soft" type="button">إغلاق الكاميرا</button>
           </div>
         </div>
 
+        <div class="or-divider"><span>أو</span></div>
+
         <div class="manual-row">
-          <input
-            id="manualCode"
-            type="text"
-            placeholder="أو اكتب الكود: A_265060"
-            autocomplete="off"
-            autocapitalize="characters">
+          <input id="manualCode" type="text" placeholder="اكتب الكود يدويًا مثل A_265060"
+                 autocomplete="off" autocapitalize="characters">
           <button id="manualBtn" class="btn soft" type="button">تسجيل</button>
         </div>
 
         <div id="resultCard" class="result-card hidden" aria-live="polite">
-          <div id="resultStatus" class="result-status"></div>
-
+          <div class="result-head-row">
+            <div id="resultStatus" class="result-status"></div>
+            <div id="resultTime" class="result-time"></div>
+          </div>
           <div id="studentBlock" class="student-block hidden">
             <div id="studentName" class="student-name"></div>
-
             <div class="student-grid">
-              <div>
-                <span>القطاع</span>
-                <strong id="studentSector">—</strong>
-              </div>
-              <div>
-                <span>المنطقة</span>
-                <strong id="studentRegion">—</strong>
-              </div>
-              <div>
-                <span>الكود</span>
-                <strong id="studentCode">—</strong>
-              </div>
+              <div><span>القطاع</span><strong id="studentSector">—</strong></div>
+              <div><span>المنطقة</span><strong id="studentRegion">—</strong></div>
+              <div><span>الكود</span><strong id="studentCode">—</strong></div>
             </div>
           </div>
         </div>
       </section>
 
-      <section class="card">
-        <div class="section-head">
+      <section class="card pro-card">
+        <div class="title-row sectors-title-row">
           <div>
-            <div class="eyebrow">تحديث لحظي</div>
+            <div class="eyebrow">متابعة لحظية</div>
             <h2>الحضور حسب القطاع</h2>
           </div>
+          <span class="mini-badge">Live</span>
         </div>
-
         <div class="sector-list" id="sectorList"></div>
       </section>
 
       <section class="bottom-actions">
-        <button id="finalizeBtn" class="btn danger-soft wide" type="button">
-          إنهاء اللقاء وتسجيل الغياب
-        </button>
+        <button id="finalizeBtn" class="btn danger-soft wide" type="button">إنهاء اللقاء وتسجيل الغياب</button>
       </section>
 
+      <footer class="app-footer"><span>نظام حضور الطلبة</span><span>v2.0</span></footer>
+
       <div id="busyOverlay" class="busy-overlay hidden" aria-live="polite">
-        <div class="spinner"></div>
-        <span>جاري التنفيذ...</span>
+        <div class="spinner"></div><span>جاري التنفيذ...</span>
       </div>
     </section>
 
-
     <dialog id="newSessionDialog">
       <form method="dialog" class="dialog-card" id="newSessionForm">
-        <h3>إنشاء لقاء جديد</h3>
-
-        <label class="field">
-          <span>تاريخ اللقاء</span>
-          <input id="newSessionDate" type="date" required>
-        </label>
-
+        <div><div class="eyebrow">إدارة اللقاءات</div><h3>إنشاء لقاء جديد</h3></div>
+        <label class="field"><span>تاريخ اللقاء</span><input id="newSessionDate" type="date" required></label>
         <div class="dialog-actions">
           <button class="btn soft" value="cancel" type="submit">إلغاء</button>
-          <button id="createSessionBtn" class="btn primary" value="default" type="button">
-            إنشاء
-          </button>
+          <button id="createSessionBtn" class="btn primary" value="default" type="button">إنشاء اللقاء</button>
         </div>
       </form>
     </dialog>
 
-
     <dialog id="settingsDialog">
       <div class="dialog-card">
-        <h3>الإعدادات</h3>
-
-        <button id="installBtnSettings" class="btn soft wide install hidden" type="button">
-          تثبيت التطبيق على الهاتف
-        </button>
-
-        <button id="changeBackendBtn" class="btn soft wide" type="button">
-          تغيير رابط الـ Backend
-        </button>
-
-        <button id="logoutBtn" class="btn danger-soft wide" type="button">
-          تسجيل الخروج
-        </button>
-
-        <button id="closeSettingsBtn" class="btn primary wide" type="button">
-          إغلاق
-        </button>
+        <div><div class="eyebrow">النظام</div><h3>الإعدادات</h3></div>
+        <button id="installBtnSettings" class="btn soft wide install hidden" type="button">تثبيت التطبيق على الهاتف</button>
+        <button id="changeBackendBtn" class="btn outline-btn wide" type="button">تغيير رابط الـ Backend</button>
+        <button id="logoutBtn" class="btn danger-soft wide" type="button">تسجيل الخروج</button>
+        <button id="closeSettingsBtn" class="btn primary wide" type="button">إغلاق</button>
       </div>
     </dialog>
-
   </main>
 </body>
 </html>

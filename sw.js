@@ -1,4 +1,4 @@
-const CACHE_NAME = 'attendance-pwa-v1';
+const CACHE_NAME = 'attendance-pwa-v2';
 
 const APP_SHELL = [
   './',
@@ -7,7 +7,8 @@ const APP_SHELL = [
   './app.js',
   './manifest.json',
   './icons/icon-192.png',
-  './icons/icon-512.png'
+  './icons/icon-512.png',
+  './icons/maskable-512.png'
 ];
 
 self.addEventListener('install', event => {

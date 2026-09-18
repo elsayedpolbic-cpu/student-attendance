@@ -551,6 +551,14 @@
     $('resultStatus').textContent =
       `${prefix} ${payload?.message || 'حدث خطأ.'}`;
 
+    const resultTime = $('resultTime');
+    if (resultTime) {
+      resultTime.textContent = new Intl.DateTimeFormat('ar-EG', {
+        hour: 'numeric',
+        minute: '2-digit'
+      }).format(new Date());
+    }
+
     if (payload?.student) {
       show(studentBlock);
 
@@ -958,8 +966,39 @@
   }
 
 
+  function updateConnectionState() {
+    const online = navigator.onLine;
+    const banner = $('offlineBanner');
+    const badge = $('connectionBadge');
+
+    if (banner) {
+      banner.classList.toggle('hidden', online);
+    }
+
+    if (badge) {
+      badge.classList.toggle('offline', !online);
+      badge.innerHTML = online
+        ? '<span class="dot"></span>متصل'
+        : '<span class="dot"></span>غير متصل';
+    }
+  }
+
+  function togglePinVisibility() {
+    const input = $('pin');
+    const button = $('togglePinBtn');
+    if (!input || !button) return;
+
+    const isVisible = input.type === 'text';
+    input.type = isVisible ? 'password' : 'text';
+    button.textContent = isVisible ? 'إظهار' : 'إخفاء';
+  }
+
   function wireEvents() {
     $('loginBtn').addEventListener('click', login);
+
+    if ($('togglePinBtn')) {
+      $('togglePinBtn').addEventListener('click', togglePinVisibility);
+    }
 
     $('pin').addEventListener('keydown', event => {
       if (event.key === 'Enter') {
@@ -1068,6 +1107,9 @@
         }
       }
     );
+
+    window.addEventListener('online', updateConnectionState);
+    window.addEventListener('offline', updateConnectionState);
   }
 
 
@@ -1075,6 +1117,7 @@
     setupInstallPrompt();
     registerServiceWorker();
     wireEvents();
+    updateConnectionState();
 
     const savedBackend =
       localStorage.getItem(STORAGE_BACKEND) || '';
